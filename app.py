@@ -1,83 +1,126 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
 import joblib
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
 
 # ==============================
 # Page Config
 # ==============================
 
-st.set_page_config(page_title="Adult Income Predictor", layout="centered")
+st.set_page_config(page_title="Adult Income Classification", layout="centered")
 
-st.title("💼 Adult Income Prediction")
-st.markdown("Predict whether income exceeds $50K per year")
+st.title("💼 Adult Income Classification System")
+st.markdown("Machine Learning Models for Predicting Income Level (>50K or <=50K)")
 
 # ==============================
-# Load Saved Files
+# Load Models
 # ==============================
 
 try:
-    model = joblib.load("model/random_forest.pkl")
+    models = {
+        "Logistic Regression": joblib.load("model/logistic_regression.pkl"),
+        "Decision Tree": joblib.load("model/decision_tree.pkl"),
+        "Random Forest": joblib.load("model/random_forest.pkl")
+    }
     label_encoders = joblib.load("model/label_encoders.pkl")
 except Exception as e:
     st.error(f"Error loading model files: {e}")
     st.stop()
 
 # ==============================
-# User Inputs
+# Model Selection Dropdown
 # ==============================
 
-age = st.slider("Age", 18, 90, 30)
-education_num = st.slider("Education Number", 1, 16, 10)
-hours_per_week = st.slider("Hours per week", 1, 100, 40)
-capital_gain = st.number_input("Capital Gain", 0, 100000, 0)
-capital_loss = st.number_input("Capital Loss", 0, 10000, 0)
+st.subheader("🔍 Select Model")
+model_choice = st.selectbox(
+    "Choose a classification model:",
+    list(models.keys())
+)
 
-# Dropdown helper
-def selectbox_from_encoder(column):
-    options = label_encoders[column].classes_
-    return st.selectbox(column.replace("-", " ").title(), options)
-
-workclass = selectbox_from_encoder("workclass")
-marital_status = selectbox_from_encoder("marital-status")
-occupation = selectbox_from_encoder("occupation")
-relationship = selectbox_from_encoder("relationship")
-race = selectbox_from_encoder("race")
-sex = selectbox_from_encoder("sex")
-native_country = selectbox_from_encoder("native-country")
+model = models[model_choice]
 
 # ==============================
-# Prediction
+# Dataset Upload
 # ==============================
 
-if st.button("Predict Income"):
+st.subheader("📂 Upload Test Dataset (CSV)")
+uploaded_file = st.file_uploader(
+    "Upload a CSV file containing test data",
+    type=["csv"]
+)
+
+if uploaded_file is not None:
 
     try:
-        # Encode categorical inputs
-        workclass = label_encoders["workclass"].transform([workclass])[0]
-        marital_status = label_encoders["marital-status"].transform([marital_status])[0]
-        occupation = label_encoders["occupation"].transform([occupation])[0]
-        relationship = label_encoders["relationship"].transform([relationship])[0]
-        race = label_encoders["race"].transform([race])[0]
-        sex = label_encoders["sex"].transform([sex])[0]
-        native_country = label_encoders["native-country"].transform([native_country])[0]
+        data = pd.read_csv(uploaded_file)
 
-        # IMPORTANT:
-        # Column order must match training exactly
-        input_data = np.array([[age, workclass, 0, 0, education_num,
-                                marital_status, occupation, relationship,
-                                race, sex, capital_gain, capital_loss,
-                                hours_per_week, native_country]])
+        st.write("### Preview of Uploaded Dataset")
+        st.dataframe(data.head())
 
-        # No scaling for RandomForest
-        prediction = model.predict(input_data)[0]
-        probability = model.predict_proba(input_data)[0][1]
+        # Check if target exists
+        if "income" not in data.columns:
+            st.error("Uploaded dataset must contain 'income' column as target.")
+            st.stop()
 
-        if prediction == 1:
-            st.success("Prediction: Income > 50K")
-            st.info(f"Confidence: {probability:.2f}")
-        else:
-            st.warning("Prediction: Income <= 50K")
-            st.info(f"Confidence: {1 - probability:.2f}")
+        # Encode categorical columns
+        for col in data.columns:
+            if col in label_encoders:
+                data[col] = label_encoders[col].transform(data[col])
+
+        X = data.drop("income", axis=1)
+        y = data["income"]
+
+        # ==============================
+        # Prediction
+        # ==============================
+
+        y_pred = model.predict(X)
+
+        # ==============================
+        # Evaluation Metrics
+        # ==============================
+
+        st.subheader("📊 Evaluation Metrics")
+
+        accuracy = accuracy_score(y, y_pred)
+        precision = precision_score(y, y_pred)
+        recall = recall_score(y, y_pred)
+        f1 = f1_score(y, y_pred)
+
+        st.write(f"**Accuracy:** {accuracy:.4f}")
+        st.write(f"**Precision:** {precision:.4f}")
+        st.write(f"**Recall:** {recall:.4f}")
+        st.write(f"**F1 Score:** {f1:.4f}")
+
+        # ==============================
+        # Confusion Matrix
+        # ==============================
+
+        st.subheader("📌 Confusion Matrix")
+
+        cm = confusion_matrix(y, y_pred)
+        cm_df = pd.DataFrame(
+            cm,
+            index=["Actual <=50K", "Actual >50K"],
+            columns=["Predicted <=50K", "Predicted >50K"]
+        )
+
+        st.dataframe(cm_df)
+
+        # ==============================
+        # Classification Report
+        # ==============================
+
+        st.subheader("📄 Classification Report")
+
+        report = classification_report(y, y_pred, output_dict=True)
+        report_df = pd.DataFrame(report).transpose()
+
+        st.dataframe(report_df)
 
     except Exception as e:
-        st.error(f"Prediction error: {e}")
+        st.error(f"Error processing dataset: {e}")
+
+else:
+    st.info("Please upload a test dataset CSV file to evaluate the model.")
