@@ -262,30 +262,37 @@ with tab2:
     report = classification_report(y, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
 
+    # Capitalize column names
+    report_df.columns = [col.capitalize() for col in report_df.columns]
+
+    # Capitalize row names
+    report_df.index = [str(idx).capitalize() for idx in report_df.index]
+
     styled_report = (
         report_df.style
         .format("{:.4f}")
         .set_table_styles([
+            # Column Headers
             {
-                "selector": "th",
+                "selector": "th.col_heading",
                 "props": [
-                    ("background-color", "#1f77b4"),
+                    ("background-color", "#2E86C1"),
                     ("color", "white"),
-                    ("font-size", "16px"),
-                    ("font-weight", "bold")
+                    ("font-weight", "bold"),
+                    ("font-size", "16px")
                 ]
             },
+            # Row Index (Row Names)
             {
-                "selector": "td",
+                "selector": "th.row_heading",
                 "props": [
+                    ("background-color", "#D6EAF8"),
+                    ("color", "#1B4F72"),
+                    ("font-weight", "bold"),
                     ("font-size", "15px")
                 ]
             }
         ])
-        .set_properties(**{
-            "background-color": "#f9f9f9",
-            "color": "black"
-        })
     )
 
     st.dataframe(styled_report, use_container_width=True)
