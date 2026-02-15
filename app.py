@@ -257,9 +257,53 @@ with tab1:
 with tab2:
     report = classification_report(y, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
-    st.dataframe(report_df)
+
+    styled_report = (
+        report_df.style
+        .format("{:.4f}")
+        .set_table_styles([
+            {
+                "selector": "th",
+                "props": [
+                    ("background-color", "#1f77b4"),
+                    ("color", "white"),
+                    ("font-size", "16px"),
+                    ("font-weight", "bold")
+                ]
+            },
+            {
+                "selector": "td",
+                "props": [
+                    ("font-size", "15px")
+                ]
+            }
+        ])
+        .set_properties(**{
+            "background-color": "#f9f9f9",
+            "color": "black"
+        })
+    )
+
+    st.dataframe(styled_report, use_container_width=True)
 
 with tab3:
     result_df = data.copy()
     result_df["Predicted Income"] = y_pred
-    st.dataframe(result_df)
+
+    styled_predictions = (
+        result_df.style
+        .set_table_styles([
+            {
+                "selector": "th",
+                "props": [
+                    ("background-color", "#28a745"),
+                    ("color", "white"),
+                    ("font-size", "15px"),
+                    ("font-weight", "bold")
+                ]
+            }
+        ])
+    )
+
+    st.dataframe(styled_predictions, use_container_width=True)
+
