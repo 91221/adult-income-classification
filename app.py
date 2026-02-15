@@ -103,6 +103,26 @@ with st.sidebar:
         type=["csv"]
     )
 
+    st.markdown("---")
+    st.header("🏆 Best Model")
+
+    # Get best model based on F1 Score
+    best_row = comparison_df.loc[comparison_df["F1 Score"].idxmax()]
+    best_model_name = best_row["Model"]
+    best_f1 = best_row["F1 Score"]
+
+    st.markdown(f"""
+    <div style="
+        background-color:#d4edda;
+        padding:15px;
+        border-radius:10px;
+        border-left:6px solid #28a745;
+    ">
+    <b>{best_model_name}</b><br>
+    F1 Score: <b>{best_f1:.4f}</b>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ==============================
 # Load Dataset (Default + Upload Option)
 # ==============================
@@ -176,29 +196,6 @@ st.dataframe(comparison_df)
 best_row = comparison_df.loc[comparison_df["F1 Score"].idxmax()]
 best_model_name = best_row["Model"]
 best_f1 = best_row["F1 Score"]
-
-st.markdown("## 🏆 Best Model")
-
-container = st.container()
-
-with container:
-    st.markdown(f"""
-    <div style="
-        background-color:#d4edda;
-        padding:20px;
-        border-radius:12px;
-        border-left:8px solid #28a745;
-        box-shadow: 2px 4px 12px rgba(0,0,0,0.15);
-        max-width:500px;
-    ">
-    <h2 style="color:#1e5631;">
-        {best_model_name}
-    </h2>
-    <p style="font-size:18px;">
-        F1 Score: <b>{best_f1:.4f}</b>
-    </p>
-    </div>
-    """, unsafe_allow_html=True)
 
 # ==============================
 # Detailed Evaluation (Selected Model)
