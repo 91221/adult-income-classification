@@ -23,6 +23,35 @@ from sklearn.metrics import (
 st.set_page_config(page_title="Adult Income Classification", layout="wide")
 
 st.markdown("""
+<style>
+
+/* Reduce top padding */
+section[data-testid="stSidebar"] > div:first-child {
+    padding-top: 10px;
+}
+
+/* Remove extra vertical spacing */
+section[data-testid="stSidebar"] .block-container {
+    padding-top: 0rem;
+    padding-bottom: 0rem;
+}
+
+/* Make sidebar take full height without inner scroll */
+section[data-testid="stSidebar"] {
+    height: 100vh;
+    overflow-y: hidden;
+}
+
+/* Reduce spacing between elements */
+section[data-testid="stSidebar"] .stSelectbox,
+section[data-testid="stSidebar"] .stFileUploader {
+    margin-bottom: 10px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
 # 💼 Adult Income Prediction Dashboard  
 Compare multiple ML models and evaluate performance.
 """)
