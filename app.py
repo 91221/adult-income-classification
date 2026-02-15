@@ -7,7 +7,7 @@ import joblib
 # Load Saved Files
 # ==============================
 
-model = joblib.load("model/xgboost.pkl")   # Best model
+model = joblib.load("model/random_forest.pkl") # Best model
 scaler = joblib.load("model/scaler.pkl")
 label_encoders = joblib.load("model/label_encoders.pkl")
 
