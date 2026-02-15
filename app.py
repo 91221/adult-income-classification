@@ -1,20 +1,26 @@
 import streamlit as st
-import pandas as pd
 import numpy as np
 import joblib
+
+# ==============================
+# Page Config
+# ==============================
+
+st.set_page_config(page_title="Adult Income Predictor", layout="centered")
+
+st.title("💼 Adult Income Prediction")
+st.markdown("Predict whether income exceeds $50K per year")
 
 # ==============================
 # Load Saved Files
 # ==============================
 
-model = joblib.load("model/random_forest.pkl") # Best model
-scaler = joblib.load("model/scaler.pkl")
-label_encoders = joblib.load("model/label_encoders.pkl")
-
-st.set_page_config(page_title="Adult Income Predictor", layout="centered")
-
-st.title("💼 Adult Income Prediction")
-st.markdown("Predict whether income exceeds $50K/year")
+try:
+    model = joblib.load("model/random_forest.pkl")
+    label_encoders = joblib.load("model/label_encoders.pkl")
+except Exception as e:
+    st.error(f"Error loading model files: {e}")
+    st.stop()
 
 # ==============================
 # User Inputs
@@ -26,8 +32,7 @@ hours_per_week = st.slider("Hours per week", 1, 100, 40)
 capital_gain = st.number_input("Capital Gain", 0, 100000, 0)
 capital_loss = st.number_input("Capital Loss", 0, 10000, 0)
 
-# Categorical Dropdowns (decoded properly)
-
+# Dropdown helper
 def selectbox_from_encoder(column):
     options = label_encoders[column].classes_
     return st.selectbox(column.replace("-", " ").title(), options)
@@ -46,28 +51,33 @@ native_country = selectbox_from_encoder("native-country")
 
 if st.button("Predict Income"):
 
-    # Encode categorical inputs
-    workclass = label_encoders["workclass"].transform([workclass])[0]
-    marital_status = label_encoders["marital-status"].transform([marital_status])[0]
-    occupation = label_encoders["occupation"].transform([occupation])[0]
-    relationship = label_encoders["relationship"].transform([relationship])[0]
-    race = label_encoders["race"].transform([race])[0]
-    sex = label_encoders["sex"].transform([sex])[0]
-    native_country = label_encoders["native-country"].transform([native_country])[0]
+    try:
+        # Encode categorical inputs
+        workclass = label_encoders["workclass"].transform([workclass])[0]
+        marital_status = label_encoders["marital-status"].transform([marital_status])[0]
+        occupation = label_encoders["occupation"].transform([occupation])[0]
+        relationship = label_encoders["relationship"].transform([relationship])[0]
+        race = label_encoders["race"].transform([race])[0]
+        sex = label_encoders["sex"].transform([sex])[0]
+        native_country = label_encoders["native-country"].transform([native_country])[0]
 
-    input_data = np.array([[age, workclass, 0, 0, education_num,
-                            marital_status, occupation, relationship,
-                            race, sex, capital_gain, capital_loss,
-                            hours_per_week, native_country]])
+        # IMPORTANT:
+        # Column order must match training exactly
+        input_data = np.array([[age, workclass, 0, 0, education_num,
+                                marital_status, occupation, relationship,
+                                race, sex, capital_gain, capital_loss,
+                                hours_per_week, native_country]])
 
-    # Scale numeric features
-    input_scaled = scaler.transform(input_data)
+        # No scaling for RandomForest
+        prediction = model.predict(input_data)[0]
+        probability = model.predict_proba(input_data)[0][1]
 
-    prediction = model.predict(input_scaled)[0]
-    probability = model.predict_proba(input_scaled)[0][1]
+        if prediction == 1:
+            st.success("Prediction: Income > 50K")
+            st.info(f"Confidence: {probability:.2f}")
+        else:
+            st.warning("Prediction: Income <= 50K")
+            st.info(f"Confidence: {1 - probability:.2f}")
 
-    if prediction == 1:
-        st.success(f"Prediction: Income >50K (Confidence: {probability:.2f})")
-    else:
-        st.warning(f"Prediction: Income <=50K (Confidence: {1-probability:.2f})")
-
+    except Exception as e:
+        st.error(f"Prediction error: {e}")
