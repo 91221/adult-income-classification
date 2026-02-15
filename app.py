@@ -33,41 +33,29 @@ Compare multiple ML models and evaluate performance.
 
 st.markdown("""
 <style>
-
-/* Increase tab font size */
 button[data-baseweb="tab"] {
     font-size: 20px !important;
     font-weight: bold !important;
     padding: 12px 25px !important;
 }
-
-/* Default inactive tab color */
 button[data-baseweb="tab"] {
     color: #444444 !important;
 }
-
-/* Active Tab Styling */
 button[aria-selected="true"] {
     color: white !important;
     border-radius: 8px 8px 0px 0px !important;
 }
-
-/* Specific Colors for Each Tab */
 button[data-baseweb="tab"]:nth-child(1)[aria-selected="true"] {
-    background-color: #e74c3c !important;  /* Red */
+    background-color: #e74c3c !important;
 }
-
 button[data-baseweb="tab"]:nth-child(2)[aria-selected="true"] {
-    background-color: #3498db !important;  /* Blue */
+    background-color: #3498db !important;
 }
-
 button[data-baseweb="tab"]:nth-child(3)[aria-selected="true"] {
-    background-color: #2ecc71 !important;  /* Green */
+    background-color: #2ecc71 !important;
 }
-
 </style>
 """, unsafe_allow_html=True)
-
 
 # ==============================
 # Load Models
@@ -85,7 +73,7 @@ except Exception as e:
     st.stop()
 
 # ==============================
-# Sidebar
+# Sidebar (Only Inputs Here)
 # ==============================
 
 with st.sidebar:
@@ -103,28 +91,8 @@ with st.sidebar:
         type=["csv"]
     )
 
-    st.markdown("---")
-    st.header("🏆 Best Model")
-
-    # Get best model based on F1 Score
-    best_row = comparison_df.loc[comparison_df["F1 Score"].idxmax()]
-    best_model_name = best_row["Model"]
-    best_f1 = best_row["F1 Score"]
-
-    st.markdown(f"""
-    <div style="
-        background-color:#d4edda;
-        padding:15px;
-        border-radius:10px;
-        border-left:6px solid #28a745;
-    ">
-    <b>{best_model_name}</b><br>
-    F1 Score: <b>{best_f1:.4f}</b>
-    </div>
-    """, unsafe_allow_html=True)
-
 # ==============================
-# Load Dataset (Default + Upload Option)
+# Load Dataset
 # ==============================
 
 if uploaded_file is None:
@@ -146,7 +114,7 @@ if "income" not in data.columns:
     st.stop()
 
 # ==============================
-# Encode Categorical Features
+# Encode Data
 # ==============================
 
 for col in data.columns:
@@ -157,7 +125,7 @@ X = data.drop("income", axis=1)
 y = data["income"]
 
 # ==============================
-# Model Comparison Section
+# Model Comparison (MUST COME BEFORE BEST MODEL)
 # ==============================
 
 comparison_results = []
@@ -186,19 +154,38 @@ comparison_df = pd.DataFrame(
     columns=["Model", "Accuracy", "AUC", "Precision", "Recall", "F1 Score", "MCC"]
 )
 
-st.markdown("## 📊 Model Comparison")
-st.dataframe(comparison_df)
-
 # ==============================
-# Best Model Card
+# NOW Show Best Model in Sidebar
 # ==============================
 
 best_row = comparison_df.loc[comparison_df["F1 Score"].idxmax()]
 best_model_name = best_row["Model"]
 best_f1 = best_row["F1 Score"]
 
+with st.sidebar:
+    st.markdown("---")
+    st.header("🏆 Best Model")
+    st.markdown(f"""
+    <div style="
+        background-color:#d4edda;
+        padding:15px;
+        border-radius:10px;
+        border-left:6px solid #28a745;
+    ">
+    <b>{best_model_name}</b><br>
+    F1 Score: <b>{best_f1:.4f}</b>
+    </div>
+    """, unsafe_allow_html=True)
+
 # ==============================
-# Detailed Evaluation (Selected Model)
+# Show Comparison Table
+# ==============================
+
+st.markdown("## 📊 Model Comparison")
+st.dataframe(comparison_df, use_container_width=True)
+
+# ==============================
+# Detailed Evaluation
 # ==============================
 
 st.markdown("## 🔎 Detailed Evaluation")
@@ -219,10 +206,6 @@ recall = recall_score(y, y_pred)
 f1 = f1_score(y, y_pred)
 mcc = matthews_corrcoef(y, y_pred)
 
-# ==============================
-# Summary Metrics
-# ==============================
-
 col1, col2, col3 = st.columns(3)
 
 with col1:
@@ -238,7 +221,7 @@ with col3:
     st.metric("MCC Score", f"{mcc:.4f}")
 
 # ==============================
-# Tabs Section
+# Tabs
 # ==============================
 
 tab1, tab2, tab3 = st.tabs([
@@ -268,17 +251,13 @@ with tab2:
     report = classification_report(y, y_pred, output_dict=True)
     report_df = pd.DataFrame(report).transpose()
 
-    # Capitalize column names
     report_df.columns = [col.capitalize() for col in report_df.columns]
-
-    # Capitalize row names
     report_df.index = [str(idx).capitalize() for idx in report_df.index]
 
     styled_report = (
         report_df.style
         .format("{:.4f}")
         .set_table_styles([
-            # Column Headers
             {
                 "selector": "th.col_heading",
                 "props": [
@@ -288,7 +267,6 @@ with tab2:
                     ("font-size", "16px")
                 ]
             },
-            # Row Index (Row Names)
             {
                 "selector": "th.row_heading",
                 "props": [
@@ -323,4 +301,3 @@ with tab3:
     )
 
     st.dataframe(styled_predictions, use_container_width=True)
-
