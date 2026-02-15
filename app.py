@@ -63,10 +63,14 @@ button[data-baseweb="tab"]:nth-child(3)[aria-selected="true"] {
 
 try:
     models = {
-        "Logistic Regression": joblib.load("model/logistic_regression.pkl"),
-        "Decision Tree": joblib.load("model/decision_tree.pkl"),
-        "Random Forest": joblib.load("model/random_forest.pkl")
+    "Logistic Regression": joblib.load("model/logistic_regression.pkl"),
+    "Decision Tree Classifier": joblib.load("model/decision_tree.pkl"),
+    "K-Nearest Neighbor Classifier": joblib.load("model/knn.pkl"),
+    "Naive Bayes Classifier": joblib.load("model/naive_bayes.pkl"),
+    "Random Forest (Ensemble)": joblib.load("model/random_forest.pkl"),
+    "XGBoost (Ensemble)": joblib.load("model/xgboost.pkl")
     }
+
     label_encoders = joblib.load("model/label_encoders.pkl")
 except Exception as e:
     st.error(f"Error loading model files: {e}")
@@ -153,6 +157,16 @@ comparison_df = pd.DataFrame(
     comparison_results,
     columns=["Model", "Accuracy", "AUC", "Precision", "Recall", "F1 Score", "MCC"]
 )
+
+# Add Ranking based on F1 Score
+comparison_df["Rank"] = comparison_df["F1 Score"].rank(
+    ascending=False,
+    method="dense"
+).astype(int)
+
+# Sort by Rank
+comparison_df = comparison_df.sort_values("Rank")
+
 
 # ==============================
 # NOW Show Best Model in Sidebar
