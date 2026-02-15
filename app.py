@@ -64,14 +64,15 @@ button[data-baseweb="tab"]:nth-child(3)[aria-selected="true"] {
 try:
     models = {
     "Logistic Regression": joblib.load("model/logistic_regression.pkl"),
-    "Decision Tree Classifier": joblib.load("model/decision_tree.pkl"),
-    "K-Nearest Neighbor Classifier": joblib.load("model/knn.pkl"),
-    "Naive Bayes Classifier": joblib.load("model/naive_bayes.pkl"),
-    "Random Forest (Ensemble)": joblib.load("model/random_forest.pkl"),
-    "XGBoost (Ensemble)": joblib.load("model/xgboost.pkl")
-    }
+    "Decision Tree Classifier": joblib.load("model/decision_tree_classifier.pkl"),
+    "K-Nearest Neighbor Classifier": joblib.load("model/k-nearest_neighbor_classifier.pkl"),
+    "Naive Bayes Classifier": joblib.load("model/naive_bayes_classifier.pkl"),
+    "Random Forest (Ensemble)": joblib.load("model/random_forest_ensemble.pkl"),
+    "XGBoost (Ensemble)": joblib.load("model/xgboost_ensemble.pkl"),
+   }
 
     label_encoders = joblib.load("model/label_encoders.pkl")
+
 except Exception as e:
     st.error(f"Error loading model files: {e}")
     st.stop()
