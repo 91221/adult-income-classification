@@ -235,7 +235,11 @@ with col3:
 # Tabs Section
 # ==============================
 
-tab1, tab2, tab3 = st.tabs(["Confusion Matrix", "Classification Report", "Predictions"])
+tab1, tab2, tab3 = st.tabs([
+    "**Confusion Matrix**",
+    "**Classification Report**",
+    "**Predictions**"
+])
 
 with tab1:
     cm = confusion_matrix(y, y_pred)
