@@ -179,19 +179,24 @@ best_f1 = best_row["F1 Score"]
 
 st.markdown("## 🏆 Best Model")
 
-left_col, right_col = st.columns([1, 2])  # Left smaller, right empty
+container = st.container()
 
-with left_col:
+with container:
     st.markdown(f"""
     <div style="
         background-color:#d4edda;
         padding:20px;
-        border-radius:10px;
-        border-left:6px solid #28a745;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+        border-radius:12px;
+        border-left:8px solid #28a745;
+        box-shadow: 2px 4px 12px rgba(0,0,0,0.15);
+        max-width:500px;
     ">
-    <h3 style="color:#155724; margin-bottom:10px;">{best_model_name}</h3>
-    <p style="font-size:18px;">F1 Score: <b>{best_f1:.4f}</b></p>
+    <h2 style="color:#1e5631;">
+        {best_model_name}
+    </h2>
+    <p style="font-size:18px;">
+        F1 Score: <b>{best_f1:.4f}</b>
+    </p>
     </div>
     """, unsafe_allow_html=True)
 
