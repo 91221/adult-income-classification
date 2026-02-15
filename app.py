@@ -28,6 +28,48 @@ Compare multiple ML models and evaluate performance.
 """)
 
 # ==============================
+# Custom Styling for Tabs
+# ==============================
+
+st.markdown("""
+<style>
+
+/* Increase tab font size */
+button[data-baseweb="tab"] {
+    font-size: 20px !important;
+    font-weight: bold !important;
+    padding: 12px 25px !important;
+}
+
+/* Default inactive tab color */
+button[data-baseweb="tab"] {
+    color: #444444 !important;
+}
+
+/* Active Tab Styling */
+button[aria-selected="true"] {
+    color: white !important;
+    border-radius: 8px 8px 0px 0px !important;
+}
+
+/* Specific Colors for Each Tab */
+button[data-baseweb="tab"]:nth-child(1)[aria-selected="true"] {
+    background-color: #e74c3c !important;  /* Red */
+}
+
+button[data-baseweb="tab"]:nth-child(2)[aria-selected="true"] {
+    background-color: #3498db !important;  /* Blue */
+}
+
+button[data-baseweb="tab"]:nth-child(3)[aria-selected="true"] {
+    background-color: #2ecc71 !important;  /* Green */
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+# ==============================
 # Load Models
 # ==============================
 
