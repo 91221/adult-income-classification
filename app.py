@@ -18,10 +18,12 @@ from sklearn.metrics import (
 # Page Config
 # ==============================
 
-st.set_page_config(page_title="Adult Income Classification", layout="centered")
+st.set_page_config(page_title="Adult Income Classification", layout="wide")
 
-st.title("💼 Adult Income Classification System")
-st.markdown("Machine Learning Models for Predicting Income Level (>50K or <=50K)")
+st.markdown("""
+# 💼 Adult Income Prediction Dashboard  
+Upload your test CSV & evaluate different ML models.
+""")
 
 # ==============================
 # Load Models
@@ -39,37 +41,38 @@ except Exception as e:
     st.stop()
 
 # ==============================
-# Model Selection
+# Sidebar - User Inputs
 # ==============================
 
-st.subheader("🔍 Select Model")
-model_choice = st.selectbox(
-    "Choose a classification model:",
-    list(models.keys())
-)
+with st.sidebar:
+    st.header("🔍 Select Model")
+    model_choice = st.selectbox(
+        "Choose a classification model:",
+        list(models.keys())
+    )
+
+    st.markdown("---")
+    st.header("📂 Upload Test Dataset")
+    uploaded_file = st.file_uploader(
+        "Upload a CSV file (must contain 'income' column)",
+        type=["csv"]
+    )
 
 model = models[model_choice]
 
 # ==============================
-# Dataset Upload
+# Dataset Upload & Evaluation
 # ==============================
-
-st.subheader("📂 Upload Test Dataset (CSV)")
-uploaded_file = st.file_uploader(
-    "Upload a CSV file containing test data",
-    type=["csv"]
-)
 
 if uploaded_file is not None:
 
     try:
         data = pd.read_csv(uploaded_file)
-
-        st.write("### Preview of Uploaded Dataset")
+        st.write("### 📋 Uploaded Dataset Preview")
         st.dataframe(data.head())
 
         if "income" not in data.columns:
-            st.error("Uploaded dataset must contain 'income' column as target.")
+            st.error("Uploaded dataset must contain 'income' target column.")
             st.stop()
 
         # Encode categorical columns
@@ -80,24 +83,16 @@ if uploaded_file is not None:
         X = data.drop("income", axis=1)
         y = data["income"]
 
-        # ==============================
-        # Prediction
-        # ==============================
-
+        # Predictions
         y_pred = model.predict(X)
 
-        # For AUC we need probabilities
+        # For AUC
         if hasattr(model, "predict_proba"):
             y_prob = model.predict_proba(X)[:, 1]
         else:
             y_prob = y_pred
 
-        # ==============================
-        # Evaluation Metrics
-        # ==============================
-
-        st.subheader("📊 Evaluation Metrics")
-
+        # Metrics
         accuracy = accuracy_score(y, y_pred)
         auc = roc_auc_score(y, y_prob)
         precision = precision_score(y, y_pred)
@@ -105,41 +100,53 @@ if uploaded_file is not None:
         f1 = f1_score(y, y_pred)
         mcc = matthews_corrcoef(y, y_pred)
 
-        st.write(f"**Accuracy:** {accuracy:.4f}")
-        st.write(f"**AUC Score:** {auc:.4f}")
-        st.write(f"**Precision:** {precision:.4f}")
-        st.write(f"**Recall:** {recall:.4f}")
-        st.write(f"**F1 Score:** {f1:.4f}")
-        st.write(f"**MCC Score:** {mcc:.4f}")
-
         # ==============================
-        # Confusion Matrix
+        # Display Summary Metrics
         # ==============================
 
-        st.subheader("📌 Confusion Matrix")
+        st.markdown("## 📊 Evaluation Summary")
 
-        cm = confusion_matrix(y, y_pred)
-        cm_df = pd.DataFrame(
-            cm,
-            index=["Actual <=50K", "Actual >50K"],
-            columns=["Predicted <=50K", "Predicted >50K"]
-        )
-
-        st.dataframe(cm_df)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Accuracy", f"{accuracy:.4f}")
+            st.metric("AUC Score", f"{auc:.4f}")
+        with col2:
+            st.metric("Precision", f"{precision:.4f}")
+            st.metric("Recall", f"{recall:.4f}")
+        with col3:
+            st.metric("F1 Score", f"{f1:.4f}")
+            st.metric("MCC Score", f"{mcc:.4f}")
 
         # ==============================
-        # Classification Report
+        # Tabs for Detailed Views
         # ==============================
 
-        st.subheader("📄 Classification Report")
+        tab1, tab2, tab3 = st.tabs(["Confusion Matrix", "Classification Report", "Raw Predictions"])
 
-        report = classification_report(y, y_pred, output_dict=True)
-        report_df = pd.DataFrame(report).transpose()
+        with tab1:
+            st.header("📌 Confusion Matrix")
+            cm = confusion_matrix(y, y_pred)
+            cm_df = pd.DataFrame(
+                cm,
+                index=["Actual <=50K", "Actual >50K"],
+                columns=["Predicted <=50K", "Predicted >50K"]
+            )
+            st.dataframe(cm_df)
 
-        st.dataframe(report_df)
+        with tab2:
+            st.header("📄 Classification Report")
+            report_dict = classification_report(y, y_pred, output_dict=True)
+            report_df = pd.DataFrame(report_dict).transpose()
+            st.dataframe(report_df)
+
+        with tab3:
+            st.header("🔎 Raw Predictions")
+            result_df = data.copy()
+            result_df["Predicted Income"] = y_pred
+            st.dataframe(result_df)
 
     except Exception as e:
         st.error(f"Error processing dataset: {e}")
 
 else:
-    st.info("Please upload a test dataset CSV file to evaluate the model.")
+    st.info("🛈 Please upload a test dataset CSV file using the sidebar uploader.")
