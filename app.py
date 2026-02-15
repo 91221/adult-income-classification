@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 from sklearn.metrics import (
     accuracy_score,
@@ -124,15 +127,24 @@ if uploaded_file is not None:
         tab1, tab2, tab3 = st.tabs(["Confusion Matrix", "Classification Report", "Raw Predictions"])
 
         with tab1:
-            st.header("📌 Confusion Matrix")
+            st.subheader("📌 Confusion Matrix")
             cm = confusion_matrix(y, y_pred)
-            cm_df = pd.DataFrame(
+            fig, ax = plt.subplots(figsize=(6, 5))            
+            sns.heatmap(
                 cm,
-                index=["Actual <=50K", "Actual >50K"],
-                columns=["Predicted <=50K", "Predicted >50K"]
-            )
-            st.dataframe(cm_df)
-
+                annot=True,
+                fmt="d",
+                cmap="Blues",
+                xticklabels=["<=50K", ">50K"],
+                yticklabels=["<=50K", ">50K"],
+                cbar=True,
+                ax=ax
+            )            
+            ax.set_xlabel("Predicted Label")
+            ax.set_ylabel("True Label")
+            ax.set_title(f"{model_choice} Confusion Matrix")            
+            st.pyplot(fig)
+            
         with tab2:
             st.header("📄 Classification Report")
             report_dict = classification_report(y, y_pred, output_dict=True)
