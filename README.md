@@ -15,13 +15,21 @@ The goal is to compare multiple machine learning models and evaluate their perfo
 B. DATASET DESCRIPTION
 
 The dataset used in this project is the Adult Income Dataset (Census Income Dataset) obtained from the UCI Machine Learning Repository.
+
 This dataset is widely used for binary classification tasks and aims to predict whether an individual's annual income exceeds $50,000 based on demographic and employment-related attributes.
+
 🎯 Target Variable:
+
 •	Income
+
 o	<=50K
+
 o	>50K
+
 The dataset consists of both numerical and categorical features.
+
 Categorical variables were encoded using label encoding before training the machine learning models.
+
 Data preprocessing also included handling missing values and cleaning inconsistent entries to ensure model reliability and performance.
 
 
