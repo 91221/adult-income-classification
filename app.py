@@ -2,7 +2,17 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    roc_auc_score,
+    matthews_corrcoef,
+    confusion_matrix,
+    classification_report
+)
 
 # ==============================
 # Page Config
@@ -29,7 +39,7 @@ except Exception as e:
     st.stop()
 
 # ==============================
-# Model Selection Dropdown
+# Model Selection
 # ==============================
 
 st.subheader("🔍 Select Model")
@@ -58,7 +68,6 @@ if uploaded_file is not None:
         st.write("### Preview of Uploaded Dataset")
         st.dataframe(data.head())
 
-        # Check if target exists
         if "income" not in data.columns:
             st.error("Uploaded dataset must contain 'income' column as target.")
             st.stop()
@@ -77,6 +86,12 @@ if uploaded_file is not None:
 
         y_pred = model.predict(X)
 
+        # For AUC we need probabilities
+        if hasattr(model, "predict_proba"):
+            y_prob = model.predict_proba(X)[:, 1]
+        else:
+            y_prob = y_pred
+
         # ==============================
         # Evaluation Metrics
         # ==============================
@@ -84,14 +99,18 @@ if uploaded_file is not None:
         st.subheader("📊 Evaluation Metrics")
 
         accuracy = accuracy_score(y, y_pred)
+        auc = roc_auc_score(y, y_prob)
         precision = precision_score(y, y_pred)
         recall = recall_score(y, y_pred)
         f1 = f1_score(y, y_pred)
+        mcc = matthews_corrcoef(y, y_pred)
 
         st.write(f"**Accuracy:** {accuracy:.4f}")
+        st.write(f"**AUC Score:** {auc:.4f}")
         st.write(f"**Precision:** {precision:.4f}")
         st.write(f"**Recall:** {recall:.4f}")
         st.write(f"**F1 Score:** {f1:.4f}")
+        st.write(f"**MCC Score:** {mcc:.4f}")
 
         # ==============================
         # Confusion Matrix
